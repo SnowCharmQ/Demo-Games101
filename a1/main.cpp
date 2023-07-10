@@ -67,6 +67,17 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     return projection;
 }
 
+Eigen::Matrix4f get_rotation(Vector3f axis, float angle)
+{
+    float angle_rad = DEG2RAD(angle);
+    Eigen::AngleAxisf rotation(angle_rad, axis);
+    Eigen::Matrix3f rotation_matrix = rotation.toRotationMatrix();
+    Eigen::Matrix4f transformation = Eigen::Matrix4f::Identity();
+    transformation.block<3, 3>(0, 0) = rotation_matrix;
+
+    return transformation;
+}
+
 int main(int argc, const char **argv)
 {
     float angle = 0;
