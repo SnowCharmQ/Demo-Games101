@@ -37,33 +37,14 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
                                       float zNear, float zFar)
 {
-    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
-    Eigen::Matrix4f ortho = Eigen::Matrix4f::Identity();
-    Eigen::Matrix4f persp2ortho = Eigen::Matrix4f::Identity();
-    Eigen::Matrix4f ortho_scale = Eigen::Matrix4f::Identity();
-    Eigen::Matrix4f ortho_translation = Eigen::Matrix4f::Identity();
-
-    float n = -zNear;
-    float f = -zFar;
-    float t = abs(n) * tan(DEG2RAD(eye_fov / 2));
-    float b = -t;
-    float r = t * aspect_ratio;
-    float l = -r;
-    ortho_scale << 2 / (r - l), 0, 0, 0,
-        0, 2 / (t - b), 0, 0,
-        0, 0, 2 / (n - f), 0,
-        0, 0, 0, 1;
-    ortho_translation << 1, 0, 0, -(r + l) / 2,
-        0, 1, 0, -(t + b) / 2,
-        0, 0, 1, -(n + f) / 2,
-        0, 0, 0, 1;
-    ortho = ortho_scale * ortho_translation;
-    persp2ortho << n, 0, 0, 0,
-        0, n, 0, 0,
-        0, 0, n + f, -n * f,
-        0, 0, 1, 0;
-    projection = ortho * persp2ortho;
-
+    float f = 1.0f / tan(DEG2RAD(eye_fov / 2.0f));
+    float A = (zFar + zNear) / (zNear - zFar);
+    float B = (2.0f * zFar * zNear) / (zNear - zFar);
+    Eigen::Matrix4f projection;
+    projection << f / aspect_ratio, 0.0f, 0.0f, 0.0f,
+                        0.0f, f, 0.0f, 0.0f,
+                        0.0f, 0.0f, A, B,
+                        0.0f, 0.0f, -1.0f, 0.0f;
     return projection;
 }
 
