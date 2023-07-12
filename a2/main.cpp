@@ -1,3 +1,4 @@
+#include "time.h"
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "rasterizer.hpp"
@@ -87,6 +88,9 @@ int main(int argc, const char **argv)
 
     if (command_line)
     {
+        clock_t start, end;
+        start = clock();
+
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
         r.set_model(get_model_matrix(angle));
@@ -99,6 +103,9 @@ int main(int argc, const char **argv)
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
         cv::imwrite(filename, image);
+
+        end = clock();
+        std::cout << "Time: " << (double)(end - start) / CLOCKS_PER_SEC << "s" << std::endl;
 
         return 0;
     }
