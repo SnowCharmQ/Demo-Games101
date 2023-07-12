@@ -118,53 +118,32 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t)
     auto v = t.toVector4();
 
     // Find out the bounding box of current triangle.
-    float minx, miny, maxx, maxy = 0;
+    float minx, miny = std::numeric_limits<float>::infinity();
+    float maxx, maxy = -std::numeric_limits<float>::infinity();
     for (int i = 0; i < 3; i++)
     {
         auto p = t.v[i];
-        if (i == 0)
-        {
-            minx = p.x();
-            maxx = p.x();
-            miny = p.y();
-            maxy = p.y();
-            continue;
-        }
-        if (p.x() < minx)
-        {
-            minx = p.x();
-        }
-        if (p.x() > maxx)
-        {
-            maxx = p.x();
-        }
-        if (p.y() < miny)
-        {
-            miny = p.y();
-        }
-        if (p.y() > maxy)
-        {
-            maxy = p.y();
-        }
+        minx = std::min(minx, p.x());
+        maxx = std::max(maxx, p.x());
+        miny = std::min(miny, p.y());
+        maxy = std::max(maxy, p.y());
     }
     // Iterate through the pixel and find if the current pixel is inside the triangle
-    for (int i = (int)minx; i < maxx + 1; i++)
+    for (int x = (int)minx; x < maxx + 1; x++)
     {
-        for (int j = (int)miny; j < maxy + 1; j++)
+        for (int y = (int)miny; y < maxy + 1; y++)
         {
-            if (insideTriangle(i, j, t.v))
+            if (insideTriangle(x, y, t.v))
             {
-                auto [alpha, beta, gamma] = computeBarycentric2D(i, j, t.v);
+                auto [alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
                 float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
                 float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
                 z_interpolated *= w_reciprocal;
-                int buf_index = get_index(i, j);
+                int buf_index = get_index(x, y);
                 if (z_interpolated < depth_buf[buf_index])
                 {
-                    //     if (depth_buf[buf_index] != std::numeric_limits<float>::infinity())
-                    // std::cout<<z_interpolated<<depth_buf[buf_index]<<std::endl;
                     depth_buf[buf_index] = z_interpolated;
-                    set_pixel(Vector3f(i, j, 1.0f), t.getColor());
+                    set_pixel(Vector3f(x, y, 1.0f), t.getColor());
                 }
             }
         }
