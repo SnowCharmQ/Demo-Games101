@@ -1,4 +1,4 @@
-name: Build and Test Calculator
+name: RUN GAMES101
 on: [pull_request, push]
 env:
   BUILD_TYPE: Release
