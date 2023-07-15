@@ -11,8 +11,10 @@ jobs:
       BUILD_PATH: ${{github.workspace}}/build
     steps:
       - uses: actions/checkout@v3
+      - name: Update apt-get
+        run: sudo apt-get update
       - name: Install Dependencies
-        run: sudo apt-get install -y libeigen3-dev libopencv-dev
+        run: sudo apt-get --fix-missing install -y libeigen3-dev libopencv-dev
       - name: Configure CMake
         working-directory: ${{env.SRC_PATH}}
         run: cmake -B ${{env.BUILD_PATH}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
