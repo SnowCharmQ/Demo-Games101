@@ -1,7 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "OBJ_Loader.h"
+#include "objloader.h"
 #include "global.hpp"
 #include "rasterizer.hpp"
 #include "shader.hpp"
