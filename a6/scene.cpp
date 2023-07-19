@@ -1,7 +1,7 @@
 //
 // Created by Göksu Güvendiren on 2019-05-14.
 //
-
+#include <iostream>
 #include "scene.hpp"
 
 void Scene::buildBVH()
@@ -138,6 +138,5 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         }
         }
     }
-
     return hitColor;
 }

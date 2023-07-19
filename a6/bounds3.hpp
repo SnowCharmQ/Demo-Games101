@@ -4,10 +4,13 @@
 
 #ifndef RAYTRACING_BOUNDS3_H
 #define RAYTRACING_BOUNDS3_H
+
+#include <array>
+#include <algorithm>
+#include <limits>
+
 #include "ray.hpp"
 #include "vector.hpp"
-#include <limits>
-#include <array>
 
 class Bounds3
 {
@@ -91,9 +94,22 @@ public:
 inline bool Bounds3::IntersectP(const Ray &ray, const Vector3f &invDir,
                                 const std::array<int, 3> &dirIsNeg) const
 {
-    // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
+    // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster than Division
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
-    // TODO test if ray bound intersects
+    // Test if ray bound intersects
+    auto tmin = (pMin - ray.origin) * invDir;
+    auto tmax = (pMax - ray.origin) * invDir;
+    auto tmin_x = tmin.x, tmin_y = tmin.y, tmin_z = tmin.z;
+    auto tmax_x = tmax.x, tmax_y = tmax.y, tmax_z = tmax.z;
+    if (!dirIsNeg[0])
+        std::swap(tmin_x, tmax_x);
+    if (!dirIsNeg[1])
+        std::swap(tmin_y, tmax_y);
+    if (!dirIsNeg[2])
+        std::swap(tmin_z, tmax_z);
+    auto t_enter = std::max(tmin_x, std::max(tmin_y, tmin_z));
+    auto t_exit = std::min(tmax_x, std::min(tmax_y, tmax_z));
+    return t_enter < t_exit && t_exit >= 0;
 }
 
 inline Bounds3 Union(const Bounds3 &b1, const Bounds3 &b2)

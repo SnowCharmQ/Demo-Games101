@@ -28,5 +28,11 @@ struct Intersection
     double distance;
     Object *obj;
     Material *m;
+
+    friend std::ostream &operator<<(std::ostream &os, const Intersection &is)
+    {
+        os << "Intersection(" << is.happened << ", " << is.coords << ", " << is.normal << ", " << is.distance << ", " << is.obj << ", " << is.m << ")";
+        return os;
+    }
 };
 #endif // RAYTRACING_INTERSECTION_H
