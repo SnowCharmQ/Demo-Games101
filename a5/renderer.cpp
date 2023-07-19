@@ -244,7 +244,7 @@ void Renderer::Render(const Scene &scene)
             x = (2 * (i + 0.5) / (float)scene.width - 1) * scale * imageAspectRatio;
             y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
 
-            Vector3f dir = Vector3f(x, y, -1); // Don't forget to normalize this direction!
+            Vector3f dir = normalize(Vector3f(x, y, -1)); // Don't forget to normalize this direction!
             framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
         }
         UpdateProgress(j / (float)scene.height);
