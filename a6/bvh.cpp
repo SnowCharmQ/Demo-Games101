@@ -80,6 +80,39 @@ BVHBuildNode *BVHAccel::recursiveBuild(std::vector<Object *> objects)
         auto middling = objects.begin() + (objects.size() / 2);
         auto ending = objects.end();
 
+        bool sah = this->splitMethod == SplitMethod::SAH;
+        if (sah)
+        {
+            int properCut = 0;
+            int part = 16;
+            int size = objects.size();
+            auto minCost = std::numeric_limits<float>::max();
+            for (int i = 0; i < part; i++)
+            {
+                middling = objects.begin() + size * i / part;
+                // middling = objects.begin() + i;
+                auto leftshapes = std::vector<Object *>(beginning, middling);
+                auto rightshapes = std::vector<Object *>(middling, ending);
+                Bounds3 leftBounds, rightBounds;
+                for (int i = 0; i < leftshapes.size(); ++i)
+                    leftBounds = Union(leftBounds, leftshapes[i]->getBounds().Centroid());
+                for (int i = 0; i < rightshapes.size(); ++i)
+                    rightBounds = Union(rightBounds, rightshapes[i]->getBounds().Centroid());
+                assert(objects.size() == leftshapes.size() + rightshapes.size());
+                auto leftArea = leftBounds.SurfaceArea();
+                auto rightArea = rightBounds.SurfaceArea();
+                auto area = leftArea + rightArea;
+                auto cost = (leftshapes.size() * leftArea + rightshapes.size() * rightArea) / area;
+                if (cost < minCost)
+                {
+                    minCost = cost;
+                    properCut = i;
+                }
+            }
+            middling = objects.begin() + size * properCut / part;
+            // middling = objects.begin() + properCut;
+        }
+
         auto leftshapes = std::vector<Object *>(beginning, middling);
         auto rightshapes = std::vector<Object *>(middling, ending);
 
