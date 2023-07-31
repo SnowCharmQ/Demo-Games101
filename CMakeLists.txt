@@ -7,7 +7,8 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 set(CXX_MY_FLAGS -Ofast -O3 -Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization
     -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow
-    -Wsign-promo -Wstrict-overflow=5 -Wundef -Wno-unused -Wno-variadic-macros -Wno-parentheses -fdiagnostics-show-option)
+    -Wsign-promo -Wstrict-overflow=5 -Wundef -Wno-unused -Wno-variadic-macros -Wno-parentheses -fdiagnostics-show-option
+    -fopenmp)
 add_subdirectory(a0)
 add_subdirectory(a1)
 add_subdirectory(a2)
