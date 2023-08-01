@@ -9,7 +9,8 @@
 
 enum MaterialType
 {
-    DIFFUSE
+    DIFFUSE,
+    MIRROR
 };
 
 class Material
@@ -163,7 +164,12 @@ Vector3f Material::sample(const Vector3f &wi, const Vector3f &N)
         float r = std::sqrt(1.0f - z * z), phi = 2 * M_PI * x_2;
         Vector3f localRay(r * std::cos(phi), r * std::sin(phi), z);
         return toWorld(localRay, N);
-
+        break;
+    }
+    case MIRROR:
+    {
+        Vector3f r = reflect(wi, N);
+        return r;
         break;
     }
     }
@@ -176,8 +182,16 @@ float Material::pdf(const Vector3f &wi, const Vector3f &wo, const Vector3f &N)
     case DIFFUSE:
     {
         // uniform sample probability 1 / (2 * PI)
-        if (dotProduct(wo, N) > 0.0f)
+        if (dotProduct(wo, N) > EPSILON)
             return 0.5f / M_PI;
+        else
+            return 0.0f;
+        break;
+    }
+    case MIRROR:
+    {
+        if (dotProduct(wo, N) > EPSILON)
+            return 1.0f;
         else
             return 0.0f;
         break;
@@ -193,10 +207,24 @@ Vector3f Material::eval(const Vector3f &wi, const Vector3f &wo, const Vector3f &
     {
         // calculate the contribution of diffuse   model
         float cosalpha = dotProduct(N, wo);
-        if (cosalpha > 0.0f)
+        if (cosalpha > EPSILON)
         {
             Vector3f diffuse = Kd / M_PI;
             return diffuse;
+        }
+        else
+            return Vector3f(0.0f);
+        break;
+    }
+    case MIRROR:
+    {
+        float cosalpha = dotProduct(N, wo);
+        float kr;
+        if (cosalpha > EPSILON)
+        {
+            fresnel(wi, N, ior, kr);
+            Vector3f mirror = 1 / cosalpha;
+            return kr * mirror;
         }
         else
             return Vector3f(0.0f);

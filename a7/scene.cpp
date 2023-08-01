@@ -84,40 +84,68 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         }
     }
     Vector3f l_dir(0.0, 0.0, 0.0);
-    Intersection inter_light;
-    float pdf_light = 0.0;
-    sampleLight(inter_light, pdf_light);
-    Vector3f obj_pos = inter.coords;
-    Vector3f light_pos = inter_light.coords;
-    Vector3f obj_normal = inter.normal;
-    Vector3f light_normal = inter_light.normal;
-    Vector3f pos_diff = light_pos - obj_pos;
-    Vector3f light_dir = normalize(pos_diff);
-    Ray shadow_ray(obj_pos, light_dir);
-    Intersection inter_shadow = intersect(shadow_ray);
-    if (inter_shadow.happened && (inter_shadow.coords - light_pos).norm() < 1e-2)
-    {
-        Vector3f f_r = inter.m->eval(ray.direction, light_dir, obj_normal);
-        float light_distance = dotProduct(pos_diff, pos_diff);
-        l_dir = f_r * inter_light.emit * dotProduct(light_dir, obj_normal) * dotProduct(-light_dir, light_normal) / (light_distance * pdf_light);
-    }
-    if (get_random_float() > RussianRoulette)
-    {
-        return l_dir;
-    }
     Vector3f l_indir(0.0, 0.0, 0.0);
-    Vector3f new_dir = inter.m->sample(ray.direction, obj_normal);
-    new_dir = normalize(new_dir);
-    Ray new_ray(obj_pos, new_dir);
-    Intersection inter_new = intersect(new_ray);
-    if (inter_new.happened)
+    Vector3f obj_pos = inter.coords;
+    Vector3f obj_normal = inter.normal;
+    switch (inter.m->getType())
     {
-        Vector3f f_r = inter.m->eval(ray.direction, new_dir, obj_normal);
-        float pdf = inter.m->pdf(ray.direction, new_dir, obj_normal);
-        if (pdf > EPSILON)
+    case DIFFUSE:
+    {
+        Intersection inter_light;
+        float pdf_light = 0.0;
+        sampleLight(inter_light, pdf_light);
+        Vector3f light_pos = inter_light.coords;
+        Vector3f light_normal = inter_light.normal;
+        Vector3f pos_diff = light_pos - obj_pos;
+        Vector3f light_dir = normalize(pos_diff);
+        Ray shadow_ray(obj_pos, light_dir);
+        Intersection inter_shadow = intersect(shadow_ray);
+        if (inter_shadow.happened && (inter_shadow.coords - light_pos).norm() < 1e-2)
         {
-            l_indir = castRay(new_ray, depth + 1) * f_r * dotProduct(new_dir, obj_normal) / (pdf * RussianRoulette);
+            Vector3f f_r = inter.m->eval(ray.direction, light_dir, obj_normal);
+            float light_distance = dotProduct(pos_diff, pos_diff);
+            l_dir = f_r * inter_light.emit * dotProduct(light_dir, obj_normal) * dotProduct(-light_dir, light_normal) / (light_distance * pdf_light);
         }
+        if (get_random_float() > RussianRoulette)
+        {
+            return l_dir;
+        }
+        Vector3f new_dir = inter.m->sample(ray.direction, obj_normal);
+        new_dir = normalize(new_dir);
+        Ray new_ray(obj_pos, new_dir);
+        Intersection inter_new = intersect(new_ray);
+        if (inter_new.happened)
+        {
+            Vector3f f_r = inter.m->eval(ray.direction, new_dir, obj_normal);
+            float pdf = inter.m->pdf(ray.direction, new_dir, obj_normal);
+            if (pdf > EPSILON)
+            {
+                l_indir = castRay(new_ray, depth + 1) * f_r * dotProduct(new_dir, obj_normal) / (pdf * RussianRoulette);
+            }
+        }
+        break;
+    }
+    case MIRROR:
+    {
+        if (get_random_float() > RussianRoulette)
+        {
+            return l_dir;
+        }
+        Vector3f new_dir = inter.m->sample(ray.direction, inter.normal);
+        new_dir = normalize(new_dir);
+        Ray new_ray(obj_pos, new_dir);
+        Intersection inter_new = intersect(new_ray);
+        if (inter_new.happened)
+        {
+            Vector3f f_r = inter.m->eval(ray.direction, new_dir, obj_normal);
+            float pdf = inter.m->pdf(ray.direction, new_dir, obj_normal);
+            if (pdf > EPSILON)
+            {
+                l_indir = castRay(new_ray, depth + 1) * f_r * dotProduct(new_dir, obj_normal) / (pdf * RussianRoulette);
+            }
+        }
+        break;
+    }
     }
     return l_dir + l_indir;
 }
